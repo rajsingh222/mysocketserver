@@ -43,6 +43,49 @@ const server = http.createServer((req, res) => {
 
     return;
   }
+    // ------------------------------------
+  // CONTINUOUS TELEMETRY DATA
+  // ------------------------------------
+
+  if (req.method === "POST" && req.url === "/continuous-data") {
+
+    let body = "";
+
+    req.on("data", chunk => {
+      body += chunk.toString();
+    });
+
+    req.on("end", () => {
+
+      try {
+
+        const data = JSON.parse(body);
+
+        console.log("📈 Continuous telemetry received");
+
+        // NEW SOCKET EVENT
+        io.emit("continuous-wave-data", data);
+
+        res.writeHead(200, {
+          "Content-Type": "application/json"
+        });
+
+        res.end(JSON.stringify({
+          status: "ok"
+        }));
+
+      } catch (err) {
+
+        console.log("❌ Continuous JSON parse error:", err);
+
+        res.writeHead(400);
+
+        res.end("Invalid JSON");
+      }
+    });
+
+    return;
+  }
 
   // DEFAULT RESPONSE
   res.writeHead(200);
